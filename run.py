@@ -1,0 +1,41 @@
+"""Run each baseline agent on every preset plus random variants and report success."""
+
+import sys
+
+from agents import GreedyAgent, GreedyAgentSophisticated
+from env import PRESETS, CNCSchedulingEnv, preset, random_variant, verify
+
+N_RANDOM = 5
+
+
+def run_episode(variant, agent):
+    """Play one episode; return (total reward, verifier score)."""
+    env = CNCSchedulingEnv(variant["jobs"], variant["machines"])
+    obs = env.reset()
+    done, total_reward = False, 0.0
+    while not done:
+        obs, reward, done, _ = env.step(agent.act(obs))
+        total_reward += reward
+    return total_reward, verify(env.final_state())
+
+
+def main():
+    """Build the variants, run the agent on each and print a summary."""
+    seed = int(sys.argv[1]) if len(sys.argv) > 1 else None
+    variants = [(name, preset(name)) for name in PRESETS]
+    for i in range(N_RANDOM):
+        v = random_variant(None if seed is None else seed + i)
+        variants.append((f"random (seed {v['seed']})", v))
+
+    for agent in [GreedyAgent(), GreedyAgentSophisticated()]:
+        print(f"\n== {type(agent).__name__} ==")
+        scores = []
+        for name, v in variants:
+            reward, score = run_episode(v, agent)
+            scores.append(score)
+            print(f"{name:28} jobs={len(v['jobs']):2}  reward={reward:4.1f}/{len(v['jobs'])}  verifier={score}")
+        print(f"success rate: {sum(scores)}/{len(scores)}")
+
+
+if __name__ == "__main__":
+    main()
