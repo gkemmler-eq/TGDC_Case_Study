@@ -3,20 +3,21 @@
 import sys
 
 from agents import GreedyAgent, GreedyAgentSophisticated
-from env import PRESETS, CNCSchedulingEnv, preset, random_variant, verify
+from env import PRESETS, CNCSchedulingEnv, preset, random_variant, explain
 
 N_RANDOM = 5
 
 
 def run_episode(variant, agent):
-    """Play one episode; return (total reward, verifier score)."""
+    """Play one episode; return (total reward, verifier score, failure reasons)."""
     env = CNCSchedulingEnv(variant["jobs"], variant["machines"])
     obs = env.reset()
     done, total_reward = False, 0.0
     while not done:
         obs, reward, done, _ = env.step(agent.act(obs))
         total_reward += reward
-    return total_reward, verify(env.final_state())
+    score, reasons = explain(env.final_state())
+    return total_reward, score, reasons
 
 
 def main():
@@ -31,9 +32,11 @@ def main():
         print(f"\n== {type(agent).__name__} ==")
         scores = []
         for name, v in variants:
-            reward, score = run_episode(v, agent)
+            reward, score, reasons = run_episode(v, agent)
             scores.append(score)
             print(f"{name:28} jobs={len(v['jobs']):2}  reward={reward:4.1f}/{len(v['jobs'])}  verifier={score}")
+            for r in reasons:
+                print(f"    - {r}")
         print(f"success rate: {sum(scores)}/{len(scores)}")
 
 
