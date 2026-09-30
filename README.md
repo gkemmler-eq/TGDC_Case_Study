@@ -6,7 +6,8 @@ A small RL-style environment for scheduling CNC machining jobs, with a variant g
 
 Each job (`duration`, `part_size`, `axes_needed`, `deadline`) must be assigned to a machine (`max_part_size`, `axes`). An action `(job_id, machine_id)` appends the job to that machine's queue. The episode ends when every job is scheduled.
 
-- **Reward:** +1 per job that finishes on time, −1 (and episode ends) for an illegal action.
+- **Reward:** +1 per job that finishes on time on a compatible machine, −1 (and episode ends) for an illegal action.
+- **Exploit:** the original ("naive") reward ignored compatibility, so a wrong schedule could earn full reward. It is kept as `CNCSchedulingEnv(..., reward="naive")` for comparison; `tests/test_reward.py` proves the fix.
 - **Verifier:** scores the final state 1 or 0. It passes only if every job is scheduled once, on a compatible machine, without overlaps, on time, and the schedule matches a replay of the action log.
 
 ## Layout
@@ -25,5 +26,7 @@ python run.py                        # all presets
 python run.py 42                     # fixed seed for random variants
 python run.py explanation=true       # also print why each episode failed
 ```
+
+Tests: `python -m pytest` (verifier tests in `tests/test_verifier.py`, exploit tests in `tests/test_reward.py`).
 
 The number of random variants is set by `N_RANDOM` in `run.py`.

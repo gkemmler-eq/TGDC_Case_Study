@@ -7,6 +7,7 @@
     * verifier
     * data/problem generator
     * run script
+3. Fix reward
 
 ### My Task
 
@@ -31,6 +32,7 @@ Success:
     * problem statement: reset(), step(action), rewards, observations
     * from or-gym: initialize problem with data
     * check if a action is valid (not important for heuristic agent, but needed for general agents)
+    * broken reward: only checks if task is finished before deadline
 
 2. Agent
     * heuristic agent: take the first machine that is free and add next part there
@@ -51,3 +53,8 @@ Success:
 5. Run script
     * Run all problems in episodes
     * Print reward and verifier score
+
+
+### Fix reward
+
+Now not only the deadline gets checked for 0/1 reward, but also if the part is on a compatible machine

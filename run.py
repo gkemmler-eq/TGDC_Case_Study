@@ -8,9 +8,9 @@ from env import PRESETS, CNCSchedulingEnv, preset, random_variant, explain
 N_RANDOM = 0
 
 
-def run_episode(variant, agent):
+def run_episode(variant, agent, reward="fixed"):
     """Play one episode; return (total reward, verifier score, failure reasons)."""
-    env = CNCSchedulingEnv(variant["jobs"], variant["machines"])
+    env = CNCSchedulingEnv(variant["jobs"], variant["machines"], reward=reward)
     obs = env.reset()
     done, total_reward = False, 0.0
     while not done:
@@ -35,9 +35,14 @@ def main():
         print(f"\n== {type(agent).__name__} ==")
         scores = []
         for name, v in variants:
-            reward, score, reasons = run_episode(v, agent)
+            naive, _, _ = run_episode(v, agent, reward="naive")
+            fixed, score, reasons = run_episode(v, agent, reward="fixed")
             scores.append(score)
-            print(f"{name:28} jobs={len(v['jobs']):2}  reward={reward:4.1f}/{len(v['jobs'])}  verifier={score}")
+            n = len(v["jobs"])
+            print(
+                f"{name:28} jobs={n:2}  naive reward={naive:4.1f}/{n}  "
+                f"fixed reward={fixed:4.1f}/{n}  verifier={score}"
+            )
             if show_explanation:
                 for r in reasons:
                     print(f"    - {r}")

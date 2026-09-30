@@ -6,16 +6,27 @@ Each job is appended to the end of the chosen machine's queue.
 Job:     {"id", "duration", "part_size", "axes_needed", "deadline"}
 Machine: {"id", "max_part_size", "axes"}
 Action:  (job_id, machine_id)
+
+Reward modes:
+  "naive": +1 per job that finishes on time. Exploitable: ignores whether the
+           part fits the machine, so a wrong schedule can earn full reward.
+  "fixed": +1 per job that finishes on time AND is on a compatible machine.
+           Full reward (= number of jobs) then means the verifier scores 1.
 """
 
 import copy
 
+REWARD_MODES = ("naive", "fixed")
+
 
 class CNCSchedulingEnv:
-    def __init__(self, jobs, machines):
+    def __init__(self, jobs, machines, reward="fixed"):
         """Store one task variant (its jobs and machines) and start an episode."""
+        if reward not in REWARD_MODES:
+            raise ValueError(f"reward must be one of {REWARD_MODES}")
         self.jobs = {j["id"]: j for j in jobs}
         self.machines = {m["id"]: m for m in machines}
+        self.reward_mode = reward
         self.reset()
 
     def reset(self):
@@ -81,8 +92,16 @@ class CNCSchedulingEnv:
         return job_id not in {s["job_id"] for s in self.schedule}
 
     def _reward(self, job, machine_id, end):
-        """Per-step reward: 1 if this job is on time, else 0."""
-        return 1.0 if end <= job["deadline"] else 0.0
+        """Per-step reward: 1 if this job is on time (and, in "fixed" mode, compatible), else 0."""
+        on_time = end <= job["deadline"]
+        if self.reward_mode == "naive":
+            return 1.0 if on_time else 0.0
+        machine = self.machines[machine_id]
+        compatible = (
+            job["part_size"] <= machine["max_part_size"]
+            and job["axes_needed"] <= machine["axes"]
+        )
+        return 1.0 if on_time and compatible else 0.0
 
     def _obs(self):
         """What the agent sees: unscheduled jobs and when each machine is free."""
