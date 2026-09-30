@@ -5,7 +5,7 @@ import sys
 from agents import GreedyAgent, GreedyAgentSophisticated
 from env import PRESETS, CNCSchedulingEnv, preset, random_variant, explain
 
-N_RANDOM = 5
+N_RANDOM = 0
 
 
 def run_episode(variant, agent):
@@ -22,7 +22,10 @@ def run_episode(variant, agent):
 
 def main():
     """Build the variants, run the agent on each and print a summary."""
-    seed = int(sys.argv[1]) if len(sys.argv) > 1 else None
+    args = sys.argv[1:]
+    show_explanation = "explanation=true" in (a.lower() for a in args)
+    positional = [a for a in args if "=" not in a]
+    seed = int(positional[0]) if positional else None
     variants = [(name, preset(name)) for name in PRESETS]
     for i in range(N_RANDOM):
         v = random_variant(None if seed is None else seed + i)
@@ -35,8 +38,9 @@ def main():
             reward, score, reasons = run_episode(v, agent)
             scores.append(score)
             print(f"{name:28} jobs={len(v['jobs']):2}  reward={reward:4.1f}/{len(v['jobs'])}  verifier={score}")
-            for r in reasons:
-                print(f"    - {r}")
+            if show_explanation:
+                for r in reasons:
+                    print(f"    - {r}")
         print(f"success rate: {sum(scores)}/{len(scores)}")
 
 

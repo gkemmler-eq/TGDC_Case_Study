@@ -9,8 +9,10 @@ import random
 
 PRESETS = {
     "easy": {"n_jobs": 4, "n_machines": 2, "slack": 1.5, "seed": 1},
-    "medium": {"n_jobs": 8, "n_machines": 3, "slack": 1.2, "seed": 2},
-    "hard": {"n_jobs": 12, "n_machines": 4, "slack": 1.0, "seed": 3},
+    "medium1": {"n_jobs": 8, "n_machines": 3, "slack": 1.2, "seed": 2},
+    "medium2": {"n_jobs": 10, "n_machines": 3, "slack": 1.2, "seed": 4},
+    "hard1": {"n_jobs": 12, "n_machines": 4, "slack": 1.0, "seed": 3},
+    "hard2": {"n_jobs": 15, "n_machines": 5, "slack": 1.0, "seed": 5},
 }
 
 
@@ -45,7 +47,7 @@ def generate(n_jobs, n_machines, slack, seed):
 
 
 def preset(name):
-    """Return one of the predefined variants: 'easy', 'medium' or 'hard'."""
+    """Return one of the predefined variants: a key of PRESETS, e.g. 'easy', 'medium1' or 'hard2'."""
     return generate(**PRESETS[name])
 
 
